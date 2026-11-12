@@ -4,23 +4,24 @@ import ClassApp from './ClassApp';
 import HooksApp from './HooksApp';
 import { ThemeProvider, ThemeButton } from './context/ThemeContext';
 import './styles.css';
+import { DEFAULT_ENDPOINT, validEndpoint, readSetting, writeSetting } from './settings';
 
-const envEndpoint = import.meta.env.VITE_MOCKAPI_URL?.trim() || '/api/expenses';
+const envEndpoint = import.meta.env.VITE_MOCKAPI_URL?.trim() || DEFAULT_ENDPOINT;
+const savedEndpoint = readSetting('expense.endpoint', envEndpoint);
+const initialEndpoint = validEndpoint(savedEndpoint) ? savedEndpoint : DEFAULT_ENDPOINT;
 
 function App() {
   const [version, setVersion] = useState('hooks');
-  const [endpoint, setEndpoint] = useState(envEndpoint);
-  const [draft, setDraft] = useState(envEndpoint);
+  const [endpoint, setEndpoint] = useState(initialEndpoint);
+  const [draft, setDraft] = useState(initialEndpoint);
   const [settings, setSettings] = useState(false);
   const [urlError, setUrlError] = useState('');
   function configure(event) {
     event.preventDefault();
-    const value = draft.trim().replace(/\/$/, '') || '/api/expenses';
-    if (value !== '/api/expenses') {
-      try { if (new URL(value).protocol !== 'https:') throw new Error(); }
-      catch { setUrlError('Nhập URL HTTPS đầy đủ của resource expenses.'); return; }
-    }
-    setEndpoint(value); setSettings(false); setUrlError('');
+    const value = draft.trim().replace(/\/$/, '') || DEFAULT_ENDPOINT;
+    if (!validEndpoint(value)) { setUrlError('Nhập /api/expenses hoặc URL HTTPS hợp lệ.'); return; }
+    writeSetting('expense.endpoint', value);
+    setEndpoint(value); setDraft(value); setSettings(false); setUrlError('');
   }
   return (
     <ThemeProvider>
@@ -42,7 +43,7 @@ function App() {
           {settings && (
             <section className="panel api-settings">
               <h2>Kết nối MockAPI</h2>
-              <p>Mock API cục bộ đã chạy sẵn. Để trống hoặc nhập /api/expenses để dùng API trên máy; có thể nhập URL HTTPS của MockAPI.io để đổi nguồn.</p>
+              <p>Đã kết nối MockAPI.io. Để trống để dùng endpoint mặc định, hoặc nhập /api/expenses để thử API cục bộ. Lựa chọn được lưu trên trình duyệt.</p>
               <form onSubmit={configure}>
                 <label htmlFor="endpoint" className="sr-only">URL MockAPI</label>
                 <input id="endpoint" type="text" placeholder="/api/expenses" value={draft} onChange={(event) => setDraft(event.target.value)} />

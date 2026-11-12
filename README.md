@@ -1,10 +1,10 @@
 # Sổ chi tiêu — React Class & Hooks
 
-Bài tập quản lý chi tiêu bằng React + Vite, giao diện tiếng Việt, responsive, sáng/tối. Chuyển phiên bản bằng hai nút trên header. Mock API cục bộ đã tích hợp sẵn, không cần tài khoản hoặc cấu hình endpoint.
+Bài tập quản lý chi tiêu bằng React + Vite, giao diện tiếng Việt, responsive, sáng/tối. Chuyển phiên bản bằng hai nút trên header. Phần B đã nối sẵn MockAPI.io, không cần cấu hình thêm.
 
 ## Chạy dự án
 
-Yêu cầu Node.js 20.19+ hoặc 22.12+.
+Yêu cầu Node.js 22.13+ (hoặc Node 24). GitHub Actions dùng Node 22.
 
 ```sh
 npm install
@@ -19,9 +19,21 @@ npm run build
 npm run preview
 ```
 
-## Mock API tích hợp sẵn
+## MockAPI.io mặc định
 
-Chỉ cần `npm run dev`: Vite chạy cả giao diện và API cùng nguồn. Phần B mặc định gọi `/api/expenses`. `npm run preview` cũng phục vụ API sau khi build. Không cần chạy hai terminal hoặc đăng ký dịch vụ.
+Endpoint: https://6af522cdf6270fa08d67c265.mockapi.io/expenses
+
+Resource đã tạo với `content: String`, `amount: Number`, `category: String`, `date: String` và `id` tự sinh; có 5 khoản chi mẫu. GET/POST/DELETE đã được kiểm tra trên dịch vụ thật. Chỉ cần `npm run dev` và chọn Phần B. Dữ liệu được lưu trên MockAPI.io, cần kết nối Internet.
+
+Request có timeout 10 giây, hủy khi unmount, giữ dữ liệu cũ nếu tải lại thất bại; không tự gửi lại POST/DELETE để tránh thao tác trùng. Nếu mất kết nối sau khi gửi, bấm Thử lại để tải lại danh sách trước khi thao tác tiếp.
+
+Theme và endpoint được lưu trong localStorage. Endpoint ưu tiên: lựa chọn đã lưu → `VITE_MOCKAPI_URL` → endpoint mặc định. Để trống cấu hình rồi bấm Áp dụng sẽ quay về endpoint mặc định. Nếu trình duyệt chặn lưu trữ, ứng dụng vẫn chạy trong phiên hiện tại.
+
+`npm run check:mockapi` kiểm tra dịch vụ thật, tạo rồi xóa **chỉ bản ghi kiểm thử do lệnh này tạo**. Không chạy lệnh này tự động trong CI; CI dùng mock fetch và file tạm, không sửa dữ liệu trực tuyến.
+
+## Tùy chọn: mock API cục bộ
+
+Nhập `/api/expenses` ở phần cấu hình MockAPI để chuyển sang chế độ cục bộ. Vite chạy API cùng giao diện bằng `npm run dev` hoặc `npm run preview`, không cần hai terminal.
 
 | Endpoint | Chức năng |
 | --- | --- |
@@ -54,7 +66,7 @@ Chỉ cần `npm run dev`: Vite chạy cả giao diện và API cùng nguồn. P
 
 ### Tùy chọn: kết nối dịch vụ MockAPI.io
 
-Phần B đã dùng API cục bộ qua HTTP và lưu file. Chỉ thực hiện các bước sau nếu muốn chuyển sang dịch vụ MockAPI.io bên ngoài:
+Phần B đã nối sẵn resource ở trên. Các bước sau dành cho việc thay bằng project MockAPI.io khác:
 
 1. Tạo project tại https://mockapi.io và resource tên `expenses`.
 2. Giữ trường `id` tự tạo của MockAPI, thêm schema:
@@ -69,9 +81,9 @@ Phần B đã dùng API cục bộ qua HTTP và lưu file. Chỉ thực hiện c
 `category` phải thuộc `Ăn uống`, `Đi lại`, `Học tập`, `Giải trí`. `date` dùng `YYYY-MM-DD`. Xóa hoặc sửa dữ liệu Faker tự sinh nếu không đúng schema này; một resource trống cũng hợp lệ.
 
 3. Bấm **MockAPI** trên header, nhập URL resource (ví dụ `https://PROJECT.mockapi.io/api/v1/expenses`) và bấm **Áp dụng**. Hoặc sao chép `.env.example` thành `.env`, thay `VITE_MOCKAPI_URL` bằng URL thật rồi khởi động lại Vite.
-4. Chọn Phần B. Mở Network trong DevTools để kiểm tra GET, POST, DELETE. Kiểm tra tải lại trang vẫn lấy được dữ liệu đã lưu. Endpoint nhập trên giao diện chỉ có hiệu lực trong phiên hiện tại; dùng `.env` để cấu hình cho lần chạy sau.
+4. Chọn Phần B. Mở Network trong DevTools để kiểm tra GET, POST, DELETE. Kiểm tra tải lại trang vẫn lấy được dữ liệu đã lưu. Endpoint nhập trên giao diện được lưu trên trình duyệt; dùng `.env` để thay mặc định của bản build.
 
-GET/POST dùng URL resource; DELETE dùng `URL/:id`. Không đặt API key hoặc bí mật vào biến `VITE_*` vì các biến này được đưa vào mã phía trình duyệt. API cục bộ đã được kiểm tra tự động; dịch vụ MockAPI.io cần endpoint của tài khoản riêng. Để quay lại API cục bộ, nhập `/api/expenses` hoặc để trống trong cấu hình.
+GET/POST dùng URL resource; DELETE dùng `URL/:id`. Không đặt API key hoặc bí mật vào biến `VITE_*` vì các biến này được đưa vào mã phía trình duyệt. Để chuyển sang API cục bộ, nhập `/api/expenses` trong cấu hình.
 
 ## Hooks giải quyết thách thức của Class ở đâu?
 
@@ -92,7 +104,7 @@ GET/POST dùng URL resource; DELETE dùng `URL/:id`. Không đặt API key hoặ
 - Thống kê bốn loại hiển thị tổng tiền, số khoản và tỷ trọng.
 - Tìm kiếm không phân biệt chữ hoa/thường, giữ nguyên dấu tiếng Việt; trễ 350 ms ở cả hai phiên bản.
 - Dữ liệu mẫu dùng ngày hiện tại theo thiết bị. Ngày chi được giữ dạng ngày lịch, tránh lệch múi giờ khi hiển thị.
-- Phần A dùng state trong bộ nhớ, Phần B dùng API lưu file. Chuyển tab khởi tạo lại state giao diện; Phần B tải lại khoản chi đã lưu từ API.
+- Phần A dùng state trong bộ nhớ, Phần B dùng MockAPI.io mặc định (hoặc API cục bộ nếu chọn). Chuyển tab khởi tạo lại state giao diện; Phần B tải lại khoản chi đã lưu từ API.
 
 ## Kiểm tra thủ công
 
@@ -104,3 +116,5 @@ GET/POST dùng URL resource; DELETE dùng `URL/:id`. Không đặt API key hoặ
 ## Kiểm thử tự động
 
 `npm test` chạy kiểm thử tính toán/validate và HTTP integration trên file tạm: GET/POST/DELETE, lưu qua lần khởi tạo server mới, dữ liệu sai, mã lỗi HTTP, nhiều request thêm đồng thời, khởi tạo dữ liệu mẫu một lần và bảo toàn file hỏng. Test không sửa dữ liệu đang dùng của ứng dụng.
+
+Vitest + React Testing Library kiểm tra focus/reset form và title sau thêm, debounce 350 ms, dọn interval/timeout, hủy request khi unmount, timeout mạng, giữ dữ liệu khi refresh lỗi, lưu theme và xác nhận xóa ở bản Class. `.github/workflows/check.yml` tự chạy `npm ci`, `npm test`, `npm run build` khi push hoặc pull request.

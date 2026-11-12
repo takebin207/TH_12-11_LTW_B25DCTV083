@@ -4,7 +4,7 @@ Bài tập quản lý chi tiêu bằng React + Vite, giao diện tiếng Việt,
 
 ## Chạy dự án
 
-Yêu cầu Node.js 22.13+ (hoặc Node 24). GitHub Actions dùng Node 22.
+Yêu cầu Node.js 22.22.2+ trong nhánh 22, hoặc 24.15+ trong nhánh 24. GitHub Actions dùng Node 22 mới nhất.
 
 ```sh
 npm install

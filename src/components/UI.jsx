@@ -1,0 +1,34 @@
+import { CATEGORIES, CATEGORY_META, money, totalOf } from '../data';
+
+export function ClockFace({ now }) {
+  return <div className="clock"><span className="live-dot" /><time dateTime={now.toISOString()}>{now.toLocaleTimeString('vi-VN')}</time><span className="clock-date">{now.toLocaleDateString('vi-VN', { weekday: 'long', day: '2-digit', month: '2-digit', year: 'numeric' })}</span></div>;
+}
+
+export function PageHeading({ clock, showClock, onToggleClock }) {
+  return <><div className="page-heading"><div><div className="eyebrow">MỖI NGÀY MỘT CHÚT, CHỦ ĐỘNG HƠN</div><h1>Sổ chi tiêu<span>.</span></h1><p>Ghi lại hôm nay, vững vàng cho ngày mai.</p></div><div className="clock-area">{clock}<button className="text-button" onClick={onToggleClock}>{showClock ? 'Ẩn đồng hồ' : 'Hiện đồng hồ'}</button></div></div></>;
+}
+
+export function Statistics({ expenses }) {
+  const total = totalOf(expenses);
+  return <section className="statistics" aria-label="Thống kê tất cả khoản chi"><article className="stat-card total-card"><div className="stat-top"><span>Tổng chi tiêu</span><span className="stat-symbol">↗</span></div><strong>{money(total)}</strong><div className="stat-foot"><span className="pill-light">{expenses.length} khoản chi</span><span>Tất cả thời gian</span></div></article>{CATEGORIES.map((category) => { const items = expenses.filter((expense) => expense.category === category); return <article className="stat-card" key={category}><div className="stat-top"><span>{category}</span><span className={`category-icon ${CATEGORY_META[category].color}`}>{CATEGORY_META[category].icon}</span></div><strong>{money(totalOf(items))}</strong><div className="stat-foot"><span>{items.length} khoản chi</span><div className={`mini-bar ${CATEGORY_META[category].color}`}><i style={{ width: `${total ? totalOf(items) / total * 100 : 0}%` }} /></div></div></article>; })}</section>;
+}
+
+export function FormFields({ values, errors, onChange, inputRef, pending }) {
+  return <><label htmlFor="content">Nội dung khoản chi <span>*</span></label><input ref={inputRef} id="content" name="content" placeholder="Ví dụ: Cà phê buổi sáng" value={values.content} onChange={onChange} maxLength={120} aria-invalid={Boolean(errors.content)} aria-describedby={errors.content ? 'content-error' : undefined} disabled={pending} />{errors.content && <small className="field-error" id="content-error">{errors.content}</small>}
+    <label htmlFor="amount">Số tiền <span>*</span></label><div className="amount-input"><input id="amount" name="amount" type="number" min="1" step="1" placeholder="0" value={values.amount} onChange={onChange} aria-invalid={Boolean(errors.amount)} aria-describedby={errors.amount ? 'amount-error' : undefined} disabled={pending} /><span>VND</span></div>{errors.amount && <small className="field-error" id="amount-error">{errors.amount}</small>}
+    <label htmlFor="category">Loại chi tiêu <span>*</span></label><select id="category" name="category" value={values.category} onChange={onChange} disabled={pending}>{CATEGORIES.map((category) => <option key={category}>{category}</option>)}</select>{errors.category && <small className="field-error">{errors.category}</small>}
+    <label htmlFor="date">Ngày chi <span>*</span></label><input id="date" name="date" type="date" value={values.date} onChange={onChange} aria-invalid={Boolean(errors.date)} aria-describedby={errors.date ? 'date-error' : undefined} disabled={pending} />{errors.date && <small className="field-error" id="date-error">{errors.date}</small>}
+    <button className="primary-button" type="submit" disabled={pending}><span>＋</span> {pending ? 'Đang xử lý…' : 'Thêm khoản chi'}</button><p className="form-note">Một thói quen nhỏ. Một thay đổi lớn.</p></>;
+}
+
+export function FormCard({ children }) {
+  return <section className="panel form-panel"><div className="panel-heading"><span className="heading-icon">＋</span><div><h2>Thêm khoản chi</h2><p>Hôm nay bạn đã chi những gì?</p></div></div>{children}</section>;
+}
+
+export function ExpenseList({ expenses, filtered, category, onCategory, search, onSearch, onDelete, pending, loading }) {
+  return <section className="panel list-panel"><div className="list-heading"><div><h2>Danh sách khoản chi <span className="count-badge">{expenses.length}</span></h2><p>Từng khoản nhỏ, bức tranh rõ hơn.</p></div><span className="list-decoration">☷</span></div><div className="list-controls"><div className="filters" aria-label="Lọc theo loại">{['Tất cả', ...CATEGORIES].map((item) => <button key={item} aria-pressed={category === item} className={category === item ? 'filter active' : 'filter'} onClick={() => onCategory(item)}>{item}</button>)}</div><div className="search-box"><span aria-hidden="true">⌕</span><input aria-label="Tìm khoản chi" placeholder="Tìm khoản chi…" value={search} onChange={(event) => onSearch(event.target.value)} /></div></div><div className="table-scroll"><table><thead><tr><th>Nội dung</th><th>Loại chi tiêu</th><th>Ngày chi</th><th className="numeric">Số tiền</th><th><span className="sr-only">Thao tác</span></th></tr></thead><tbody>{!loading && filtered.map((expense) => <tr key={expense.id}><td><div className="expense-name"><span className={`category-icon ${CATEGORY_META[expense.category].color}`} aria-hidden="true">{CATEGORY_META[expense.category].icon}</span><strong>{expense.content}</strong></div></td><td><span className={`category-tag ${CATEGORY_META[expense.category].color}`}>{expense.category}</span></td><td className="date-cell">{expense.date.split('-').reverse().join('/')}</td><td className="numeric expense-amount">{money(expense.amount)}</td><td><button className="delete-button" onClick={() => onDelete(expense)} disabled={pending} aria-label={`Xóa ${expense.content}`} title="Xóa khoản chi"><svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" strokeWidth="1.6" aria-hidden="true"><path d="M4 7h16M9 7V4h6v3M6 7l1 13h10l1-13M10 10v7m4-7v7" /></svg></button></td></tr>)}</tbody></table>{loading ? <div className="empty-state" role="status"><span className="spinner" /> Đang tải khoản chi…</div> : filtered.length === 0 && <div className="empty-state"><span>▤</span><strong>{expenses.length ? 'Không tìm thấy khoản chi' : 'Bắt đầu từ khoản chi đầu tiên'}</strong><p>{expenses.length ? 'Thử một nội dung hoặc loại chi tiêu khác.' : 'Thêm khoản chi bằng biểu mẫu bên cạnh.'}</p></div>}</div><div className="list-total"><span>{loading ? 'Đang tải…' : `${filtered.length} khoản chi đang hiển thị`}</span><div>Tổng cộng <strong>{money(totalOf(filtered))}</strong></div></div></section>;
+}
+
+export function Notice({ children, error = false, onRetry }) {
+  return <div className={`notice ${error ? 'error-notice' : ''}`} role={error ? 'alert' : 'status'}><span>{error ? '!' : 'i'}</span><div>{children}</div>{onRetry && <button className="text-button" onClick={onRetry}>Thử lại</button>}</div>;
+}
